@@ -1,24 +1,27 @@
 # Ginmill
 
-Create Gin server with pre-define routes.
+Ginmill helps you create Gin servers with pre-defined, reusable API routes (called "Features").
+It is designed to make your Gin-based web services modular, compatible, and easy to extend by focusing on handler implementation instead of repetitive route definitions.
 
-It is useful to create compatible endpoint/API set with well-known request patha and focus on implementing gin.Context handlers.
+## Features
 
-## Example
+- Compose Gin servers from reusable route sets ("Features")
+- Standardize API endpoints for compatibility
+- Focus on implementing business logic, not boilerplate
 
-Implement Features from pre-defined routes.
+## Quick Start
 
-```go
+### Installation
+
+Add Ginmill to your Go project:
+
+```sh
+go get github.com/ginmills/ginmill
 ```
 
-Let your gin server be with the Features
+### Usage Example
 
-```go
-
-```
-
-Publish your website interface to be known as Features.
-Something like:
+Suppose you want to provide a set of OAuth endpoints as a reusable feature:
 
 ```go
 package mastodon
@@ -28,36 +31,61 @@ import (
 	"github.com/ginmills/ginmill"
 )
 
-// IMastodon defines functions must to be done
+// IMastodon defines the required handler methods
 type IMastodon interface {
-	// OAuthAuthorize for GET /oauth/authorize
-	OAuthAuthorize(c *gin.Context)
-	// OAuthObtainToken for POST /oauth/token
-	OAuthObtainToken(c *gin.Context)
-	// OAuthRevokeToken for POST /oauth/revoke
-	OAuthRevokeToken(c *gin.Context)
-
+	OAuthAuthorize(c *gin.Context)      // GET /oauth/authorize
+	OAuthObtainToken(c *gin.Context)   // POST /oauth/token
+	OAuthRevokeToken(c *gin.Context)   // POST /oauth/revoke
 }
 
-// Features let you to be a mastodon
-func Features(m IMastodon) (features *ginmill.Features) {
+// Features returns a ginmill.Features for Mastodon-compatible OAuth endpoints
+func Features(m IMastodon) *ginmill.Features {
 	r := gin.New()
-
 	oauth := r.Group("/oauth")
-
 	oauth.GET("/authorize", m.OAuthAuthorize)
 	oauth.POST("/token", m.OAuthObtainToken)
 	oauth.POST("/revoke", m.OAuthRevokeToken)
-
-	// TODO: add more known api routes
-
-	features = ginmill.NewFeatures(r.Routes())
-
-	return features
+	// Add more routes as needed
+	return ginmill.NewFeatures(r.Routes())
 }
-
 ```
 
-So that people have ginmills with your features.
+Now, you can compose your Gin server with these features:
 
-Full IMastodon Features can be found [here](https://github.com/ginmills/mastodon)
+```go
+package main
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/ginmills/ginmill"
+	"your/module/mastodon"
+)
+
+type myMastodon struct{}
+
+func (m *myMastodon) OAuthAuthorize(c *gin.Context)    { /* ... */ }
+func (m *myMastodon) OAuthObtainToken(c *gin.Context)  { /* ... */ }
+func (m *myMastodon) OAuthRevokeToken(c *gin.Context)  { /* ... */ }
+
+func main() {
+	engine := gin.New()
+	server := &ginmill.Server{Engine: engine}
+	features := mastodon.Features(&myMastodon{})
+	server.With(features)
+	engine.Run(":8080")
+}
+```
+
+## Why Ginmill?
+
+- **Reusable:** Define a set of routes once, reuse everywhere.
+- **Compatible:** Make your API compatible with well-known standards (e.g., Mastodon, ActivityPub, etc.).
+- **Modular:** Cleanly separate route definitions from handler logic.
+
+## More Examples
+
+- See [mastodon features](https://github.com/ginmills/mastodon) for a full implementation.
+
+---
+
+Ginmill is MIT licensed. Contributions welcome!
