@@ -29,6 +29,14 @@ func NewFeatures(routes gin.RoutesInfo) *Features {
 	return f
 }
 
+// GetRoutes is a getter for RoutesInfo
+func (f *Features) GetRoutes() gin.RoutesInfo {
+	r := make(gin.RoutesInfo, len(f.routes))
+	copy(r, f.routes)
+	return r
+
+}
+
 // With pre-defined Features for ginmill
 func (s *Server) With(f *Features) *Server {
 	for _, r := range f.routes {
