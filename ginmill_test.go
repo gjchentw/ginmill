@@ -77,6 +77,28 @@ func TestNewFeatures(t *testing.T) {
 	}
 }
 
+func TestFeatures_GetRoutes(t *testing.T) {
+	r := routes()
+	f := NewFeatures(r)
+	got := f.GetRoutes()
+
+	if len(got) != len(f.routes) {
+		t.Errorf("GetRoutes() length = %d, want %d", len(got), len(f.routes))
+	}
+
+	for i := range got {
+		if got[i].Method != f.routes[i].Method || got[i].Path != f.routes[i].Path {
+			t.Errorf("GetRoutes() element %d not equal", i)
+		}
+	}
+
+	if len(got) > 0 {
+		got[0].Path = "/changed"
+		if got[0].Path == f.routes[0].Path {
+			t.Errorf("GetRoutes should return a copy, not a reference")
+		}
+	}
+}
 
 func TestServer_With(t *testing.T) {
 	type args struct {
